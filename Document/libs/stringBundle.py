@@ -83,7 +83,7 @@ class StringBundle:
             if f.open(QIODevice.ReadOnly | QFile.Text):
                 text = QTextStream(f)
                 text.setCodec("UTF-8")
-            
+
             while not text.atEnd():
                 line = ustr(text.readLine())
                 key_value = line.split(PROP_SEPERATOR)

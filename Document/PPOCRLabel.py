@@ -22,10 +22,9 @@ import platform
 import subprocess
 import sys
 import traceback
-import requests
+
 import xlrd
 from functools import partial
-from uuid import uuid4
 
 from PyQt5.QtCore import (
     QSize,
@@ -61,10 +60,10 @@ from PyQt5.QtWidgets import (
     QDialog,
     QAbstractItemView,
     QSizePolicy,
-    QLineEdit
 )
 
 
+from paddleocr import PaddleOCR, PPStructure
 from libs.resources import *
 from libs.constants import *
 from libs.utils import *
@@ -83,7 +82,7 @@ from libs.editinlist import EditInList
 from libs.unique_label_qlist_widget import UniqueLabelQListWidget
 from libs.keyDialog import KeyDialog
 
-__appname__ = "Auto-X Doc Studio"
+__appname__ = "PPOCRLabel"
 
 LABEL_COLORMAP = label_colormap()
 
@@ -93,7 +92,7 @@ class MainWindow(QMainWindow):
 
     def __init__(
         self,
-        lang="en",
+        lang="ch",
         gpu=False,
         kie_mode=False,
         default_filename=None,
@@ -126,6 +125,24 @@ class MainWindow(QMainWindow):
         self.key_dialog_tip = getStr("keyDialogTip")
 
         self.defaultSaveDir = default_save_dir
+        self.ocr = PaddleOCR(
+            use_pdserving=False,
+            use_angle_cls=True,
+            det=True,
+            cls=True,
+            use_gpu=gpu,
+            lang=lang,
+            show_log=False,
+        )
+        self.table_ocr = PPStructure(
+            use_pdserving=False, use_gpu=gpu, lang=lang, layout=False, show_log=False
+        )
+
+        if os.path.exists("./data/paddle.png"):
+            result = self.ocr.ocr("./data/paddle.png", cls=True, det=True)
+            result = self.table_ocr(
+                "./data/paddle.png", return_ocr_result_in_table=True
+            )
 
         # For loading all image under a directory
         self.mImgList = []
@@ -145,8 +162,8 @@ class MainWindow(QMainWindow):
 
         self._noSelectionSlot = False
         self._beginner = True
-        # self.screencastViewer = self.getAvailableScreencastViewer()
-        # self.screencast = "https://github.com/HairongWu/Auto-X-Industry"
+        self.screencastViewer = self.getAvailableScreencastViewer()
+        self.screencast = "https://github.com/PaddlePaddle/PaddleOCR"
 
         # Load predefined classes to the list
         self.loadPredefinedClasses(default_predefined_class_file)
@@ -161,7 +178,7 @@ class MainWindow(QMainWindow):
         self.shapesToItemsbox = {}
         self.prevLabelText = getStr("tempLabel")
         self.noLabelText = getStr("nullLabel")
-        self.model = "Auto-X Agents"
+        self.model = "paddle"
         self.PPreader = None
         self.autoSaveNum = 5
 
@@ -548,6 +565,13 @@ class MainWindow(QMainWindow):
             enabled=False,
         )
 
+        help = action(
+            getStr("tutorial"),
+            self.showTutorialDialog,
+            None,
+            "help",
+            getStr("tutorialDetail"),
+        )
         showInfo = action(
             getStr("info"), self.showInfoDialog, None, "help", getStr("info")
         )
@@ -933,7 +957,7 @@ class MainWindow(QMainWindow):
             file=self.menu("&" + getStr("mfile")),
             edit=self.menu("&" + getStr("medit")),
             view=self.menu("&" + getStr("mview")),
-            autolabel=self.menu("&Auto-X Agents"),
+            autolabel=self.menu("&PaddleOCR"),
             help=self.menu("&" + getStr("mhelp")),
             recentFiles=QMenu("Open &Recent"),
             labelList=labelMenu,
@@ -1003,7 +1027,7 @@ class MainWindow(QMainWindow):
             ),
         )
 
-        addActions(self.menus.autolabel, (AutoRec, reRec, cellreRec, alcm))
+        addActions(self.menus.autolabel, (AutoRec, reRec, cellreRec, alcm, None, help))
 
         self.menus.file.aboutToShow.connect(self.updateFileMenu)
 
@@ -1188,8 +1212,8 @@ class MainWindow(QMainWindow):
             return ["open"]
 
     ## Callbacks ##
-    # def showTutorialDialog(self):
-    #     subprocess.Popen(self.screencastViewer + [self.screencast])
+    def showTutorialDialog(self):
+        subprocess.Popen(self.screencastViewer + [self.screencast])
 
     def showInfoDialog(self):
         from libs.__init__ import __version__
@@ -1224,9 +1248,10 @@ class MainWindow(QMainWindow):
 
     def rotateImg(self, filename, k, _value):
         self.actions.rotateRight.setEnabled(_value)
-        pix = cv2.imread(filename)
+        pix = cv2.imdecode(np.fromfile(filename, dtype=np.uint8), cv2.IMREAD_COLOR)
         pix = np.rot90(pix, k)
-        cv2.imwrite(filename, pix)
+        ext = os.path.splitext(filename)[1]
+        cv2.imencode(ext, pix)[1].tofile(filename)
         self.canvas.update()
         self.loadFile(filename)
 
@@ -1243,7 +1268,7 @@ class MainWindow(QMainWindow):
             )
 
     def rotateImgAction(self, k=1, _value=False):
-        filename = self.mImgList[self.currIndex]
+        filename = self.filePath
 
         if os.path.exists(filename):
             if self.itemsToShapesbox:
@@ -2363,7 +2388,9 @@ class MainWindow(QMainWindow):
 
         if mode == "Manual":
             self.result_dic_locked = []
-            img = cv2.imread(self.filePath)
+            img = cv2.imdecode(
+                np.fromfile(self.filePath, dtype=np.uint8), cv2.IMREAD_COLOR
+            )
             width, height = self.image.width(), self.image.height()
             for shape in self.canvas.lockedShapes:
                 box = [[int(p[0] * width), int(p[1] * height)] for p in shape["ratio"]]
@@ -2799,7 +2826,7 @@ class MainWindow(QMainWindow):
         import time
 
         start = time.time()
-        img = cv2.imread(self.filePath)
+        img = cv2.imdecode(np.fromfile(self.filePath, dtype=np.uint8), cv2.IMREAD_COLOR)
         res = self.table_ocr(img, return_ocr_result_in_table=True)
 
         TableRec_excel_dir = self.lastOpenDir + "/tableRec_excel_output/"
@@ -2930,7 +2957,7 @@ class MainWindow(QMainWindow):
         """
         re-recognise text in a cell
         """
-        img = cv2.imread(self.filePath)
+        img = cv2.imdecode(np.fromfile(self.filePath, dtype=np.uint8), cv2.IMREAD_COLOR)
         for shape in self.canvas.selectedShapes:
             box = [[int(p.x()), int(p.y())] for p in shape.points]
 
@@ -3008,6 +3035,7 @@ class MainWindow(QMainWindow):
                     if label:
                         label = label.replace("false", "False")
                         label = label.replace("true", "True")
+                        label = label.replace("null", "None")
                         labeldict[file] = eval(label)
                     else:
                         labeldict[file] = []
@@ -3058,25 +3086,15 @@ class MainWindow(QMainWindow):
     def autolcm(self):
         vbox = QVBoxLayout()
         hbox = QHBoxLayout()
-        
-        self.urltext = QLabel()
-        self.urltext.setText(self.stringBundle.getString("urlText"))
-        self.urltext.setAlignment(Qt.AlignLeft)
-        self.urlbox = QLineEdit(self)
-
         self.panel = QLabel()
         self.panel.setText(self.stringBundle.getString("choseModelLg"))
-        self.panel.setAlignment(Qt.AlignLeft)  
+        self.panel.setAlignment(Qt.AlignLeft)
         self.comboBox = QComboBox()
         self.comboBox.setObjectName("comboBox")
         self.comboBox.addItems(
             ["Chinese & English", "English", "French", "German", "Korean", "Japanese"]
         )
-        
-        vbox.addWidget(self.urltext)
-        vbox.addWidget(self.urlbox)
         vbox.addWidget(self.panel)
-        vbox.addWidget(self.comboBox)
         vbox.addWidget(self.comboBox)
         self.dialog = QDialog()
         self.dialog.resize(300, 100)
@@ -3089,6 +3107,8 @@ class MainWindow(QMainWindow):
 
         hbox.addWidget(self.okBtn)
         hbox.addWidget(self.cancelBtn)
+
+        vbox.addWidget(self.panel)
         vbox.addLayout(hbox)
         self.dialog.setLayout(vbox)
         self.dialog.setWindowModality(Qt.ApplicationModal)
@@ -3098,7 +3118,8 @@ class MainWindow(QMainWindow):
             self.actions.AutoRec.setEnabled(True)
 
     def modelChoose(self):
-        print(self.comboBox.currentText())
+        current_text = self.comboBox.currentText()
+        print(current_text)
         lg_idx = {
             "Chinese & English": "ch",
             "English": "en",
@@ -3107,25 +3128,30 @@ class MainWindow(QMainWindow):
             "Korean": "korean",
             "Japanese": "japan",
         }
-        lang=lg_idx[self.comboBox.currentText()]
-
-        url = self.urlbox.text() + '/setup'
-        data={'lang': lang}
-        myobj = {"data": data, "project": str(uuid4())[:9],"schema":"<View></View>"}
-
-        setup_model_version='abc'
-        url='http://localhost:9090'
-        predictions=None
-        health_connect_timeout=False
-        import requests_mock
-        with requests_mock.Mocker(real_http=True) as m:
-            m.post(f'{url}/setup', text=json.dumps({'status': 'ok', 'model_version': setup_model_version}))
-            if health_connect_timeout:
-                m.get(f'{url}/health', exc=requests.exceptions.ConnectTimeout)
-            else:
-                m.get(f'{url}/health', text=json.dumps({'status': 'UP'}))
-            response = m.post(f'{url}/predict', text=json.dumps(predictions or myobj))
-
+        if current_text in lg_idx:
+            choose_lang = lg_idx[current_text]
+            if hasattr(self, "ocr"):
+                del self.ocr
+            self.ocr = PaddleOCR(
+                use_pdserving=False,
+                use_angle_cls=True,
+                det=True,
+                cls=True,
+                use_gpu=False,
+                lang=choose_lang,
+            )
+            if choose_lang in ["ch", "en"]:
+                if hasattr(self, "table_ocr"):
+                    del self.table_ocr
+                self.table_ocr = PPStructure(
+                    use_pdserving=False,
+                    use_gpu=False,
+                    lang=choose_lang,
+                    layout=False,
+                    show_log=False,
+                )
+        else:
+            print("Invalid language selection")
         self.dialog.close()
 
     def cancel(self):
@@ -3165,6 +3191,7 @@ class MainWindow(QMainWindow):
                     if label:
                         label = label.replace("false", "False")
                         label = label.replace("true", "True")
+                        label = label.replace("null", "None")
                         labeldict[file] = eval(label)
                     else:
                         labeldict[file] = []
@@ -3402,7 +3429,7 @@ def get_main_app(argv=[]):
     app.setWindowIcon(newIcon("app"))
     # Tzutalin 201705+: Accept extra arguments to change predefined class file
     arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument("--lang", type=str, default="en", nargs="?")
+    arg_parser.add_argument("--lang", type=str, default="ch", nargs="?")
     arg_parser.add_argument("--gpu", type=str2bool, default=True, nargs="?")
     arg_parser.add_argument("--kie", type=str2bool, default=False, nargs="?")
     arg_parser.add_argument(

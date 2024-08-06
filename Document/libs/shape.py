@@ -18,6 +18,7 @@ import sys
 from PyQt5.QtCore import QPointF
 from PyQt5.QtGui import QColor, QPen, QPainterPath, QFont
 from libs.utils import distance
+from ppocr.utils.logging import get_logger
 
 DEFAULT_LINE_COLOR = QColor(0, 255, 0, 128)
 DEFAULT_FILL_COLOR = QColor(255, 0, 0, 128)
@@ -198,7 +199,7 @@ class Shape(object):
                         text = str(self.idx)
                     if min_y < MIN_Y_LABEL:
                         min_y += MIN_Y_LABEL
-                    painter.drawText(min_x, min_y, text)
+                    painter.drawText(int(min_x), int(min_y), text)
 
             if self.fill:
                 color = self.select_fill_color if self.selected else self.fill_color
