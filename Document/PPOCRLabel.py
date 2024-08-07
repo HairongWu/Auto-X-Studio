@@ -62,6 +62,7 @@ from PyQt5.QtWidgets import (
     QSizePolicy,
 )
 
+os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 
 from paddleocr import PaddleOCR, PPStructure
 from libs.resources import *
@@ -92,7 +93,7 @@ class MainWindow(QMainWindow):
 
     def __init__(
         self,
-        lang="ch",
+        lang="en",
         gpu=False,
         kie_mode=False,
         default_filename=None,
@@ -564,7 +565,13 @@ class MainWindow(QMainWindow):
             getStr("showAllBoxDetail"),
             enabled=False,
         )
-
+        training = action(
+            getStr("startTraining"),
+            self.startTraining,
+            None,
+            "start",
+            getStr("startTrainingDetail"),
+        )
         help = action(
             getStr("tutorial"),
             self.showTutorialDialog,
@@ -1027,7 +1034,7 @@ class MainWindow(QMainWindow):
             ),
         )
 
-        addActions(self.menus.autolabel, (AutoRec, reRec, cellreRec, alcm, None, help))
+        addActions(self.menus.autolabel, (AutoRec, reRec, cellreRec, alcm, None, training, None, help))
 
         self.menus.file.aboutToShow.connect(self.updateFileMenu)
 
@@ -1212,6 +1219,9 @@ class MainWindow(QMainWindow):
             return ["open"]
 
     ## Callbacks ##
+    def startTraining(self):
+        pass
+
     def showTutorialDialog(self):
         subprocess.Popen(self.screencastViewer + [self.screencast])
 
@@ -3429,9 +3439,9 @@ def get_main_app(argv=[]):
     app.setWindowIcon(newIcon("app"))
     # Tzutalin 201705+: Accept extra arguments to change predefined class file
     arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument("--lang", type=str, default="ch", nargs="?")
+    arg_parser.add_argument("--lang", type=str, default="en", nargs="?")
     arg_parser.add_argument("--gpu", type=str2bool, default=True, nargs="?")
-    arg_parser.add_argument("--kie", type=str2bool, default=False, nargs="?")
+    arg_parser.add_argument("--kie", type=str2bool, default=True, nargs="?")
     arg_parser.add_argument(
         "--predefined_classes_file",
         default=os.path.join(
