@@ -64,7 +64,6 @@ from PyQt5.QtWidgets import (
 
 os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 
-from paddleocr import PaddleOCR, PPStructure
 from libs.resources import *
 from libs.constants import *
 from libs.utils import *
@@ -82,6 +81,8 @@ from libs.hashableQListWidgetItem import HashableQListWidgetItem
 from libs.editinlist import EditInList
 from libs.unique_label_qlist_widget import UniqueLabelQListWidget
 from libs.keyDialog import KeyDialog
+
+from libs.trainDialog import TrainDialog
 
 __appname__ = "PPOCRLabel"
 
@@ -125,25 +126,9 @@ class MainWindow(QMainWindow):
         self.existed_key_cls_set = set()
         self.key_dialog_tip = getStr("keyDialogTip")
 
-        self.defaultSaveDir = default_save_dir
-        self.ocr = PaddleOCR(
-            use_pdserving=False,
-            use_angle_cls=True,
-            det=True,
-            cls=True,
-            use_gpu=gpu,
-            lang=lang,
-            show_log=False,
-        )
-        self.table_ocr = PPStructure(
-            use_pdserving=False, use_gpu=gpu, lang=lang, layout=False, show_log=False
-        )
+        self.choose_lang = "en"
 
-        if os.path.exists("./data/paddle.png"):
-            result = self.ocr.ocr("./data/paddle.png", cls=True, det=True)
-            result = self.table_ocr(
-                "./data/paddle.png", return_ocr_result_in_table=True
-            )
+        self.defaultSaveDir = default_save_dir
 
         # For loading all image under a directory
         self.mImgList = []
@@ -1219,9 +1204,6 @@ class MainWindow(QMainWindow):
             return ["open"]
 
     ## Callbacks ##
-    def startTraining(self):
-        pass
-
     def showTutorialDialog(self):
         subprocess.Popen(self.screencastViewer + [self.screencast])
 
@@ -1645,7 +1627,7 @@ class MainWindow(QMainWindow):
             ]
         # Can add differrent annotation formats here
         for box in self.result_dic:
-            trans_dic = {"label": box[1][0], "points": box[0], "difficult": False}
+            trans_dic = {"label": box['transcription'], "points": box['points'], "difficult": False}
             if self.kie_mode:
                 if len(box) == 3:
                     trans_dic.update({"key_cls": box[2]})
@@ -2700,7 +2682,7 @@ class MainWindow(QMainWindow):
 
         uncheckedList = [i for i in self.mImgList if i not in self.fileStatedict.keys()]
         self.autoDialog = AutoDialog(
-            parent=self, ocr=self.ocr, mImgList=uncheckedList, lenbar=len(uncheckedList)
+            parent=self, lang=self.choose_lang, mImgList=uncheckedList, lenbar=len(uncheckedList)
         )
         self.autoDialog.popUp()
         self.currIndex = len(self.mImgList) - 1
@@ -2712,6 +2694,15 @@ class MainWindow(QMainWindow):
         self.saveCacheLabel()
 
         self.init_key_list(self.Cachelabel)
+    
+    def startTraining(self):
+        if hasattr(self, 'PPlabelpath'):
+            print(os.path.dirname(self.PPlabelpath))
+            print(self.choose_lang)
+            self.trainDialog = TrainDialog(
+                parent=self, annos=os.path.dirname(self.PPlabelpath), lang = self.choose_lang
+            )
+            self.trainDialog.popUp()
 
     def reRecognition(self):
         img = cv2.imdecode(np.fromfile(self.filePath, dtype=np.uint8), 1)
@@ -3139,27 +3130,7 @@ class MainWindow(QMainWindow):
             "Japanese": "japan",
         }
         if current_text in lg_idx:
-            choose_lang = lg_idx[current_text]
-            if hasattr(self, "ocr"):
-                del self.ocr
-            self.ocr = PaddleOCR(
-                use_pdserving=False,
-                use_angle_cls=True,
-                det=True,
-                cls=True,
-                use_gpu=False,
-                lang=choose_lang,
-            )
-            if choose_lang in ["ch", "en"]:
-                if hasattr(self, "table_ocr"):
-                    del self.table_ocr
-                self.table_ocr = PPStructure(
-                    use_pdserving=False,
-                    use_gpu=False,
-                    lang=choose_lang,
-                    layout=False,
-                    show_log=False,
-                )
+            self.choose_lang = lg_idx[current_text]
         else:
             print("Invalid language selection")
         self.dialog.close()
