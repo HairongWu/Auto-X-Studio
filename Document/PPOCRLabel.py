@@ -84,10 +84,15 @@ from libs.keyDialog import KeyDialog
 
 from libs.trainDialog import TrainDialog
 
-__appname__ = "PPOCRLabel"
+from libs.paddleocr import PPStructure, to_excel
+__appname__ = "Auto-X Studio"
 
 LABEL_COLORMAP = label_colormap()
 
+class AttrDict(dict):
+
+     def __init__(self):
+           self.__dict__ = self
 
 class MainWindow(QMainWindow):
     FIT_WINDOW, FIT_WIDTH, MANUAL_ZOOM = list(range(3))
@@ -1627,7 +1632,7 @@ class MainWindow(QMainWindow):
             ]
         # Can add differrent annotation formats here
         for box in self.result_dic:
-            trans_dic = {"label": box['transcription'], "points": box['points'], "difficult": False}
+            trans_dic = {"label": box[1][0], "points": box[0], "difficult": False}
             if self.kie_mode:
                 if len(box) == 3:
                     trans_dic.update({"key_cls": box[2]})
@@ -2822,20 +2827,21 @@ class MainWindow(QMainWindow):
         """
         Table Recegnition
         """
-        from paddleocr import to_excel
 
         import time
-
+       
         start = time.time()
+        
         img = cv2.imdecode(np.fromfile(self.filePath, dtype=np.uint8), cv2.IMREAD_COLOR)
-        res = self.table_ocr(img, return_ocr_result_in_table=True)
+        table_ocr = PPStructure()
+        res = table_ocr(img, return_ocr_result_in_table=True)
 
         TableRec_excel_dir = self.lastOpenDir + "/tableRec_excel_output/"
         os.makedirs(TableRec_excel_dir, exist_ok=True)
         filename, _ = os.path.splitext(os.path.basename(self.filePath))
 
         excel_path = TableRec_excel_dir + "{}.xlsx".format(filename)
-
+        print(excel_path)
         if res is None:
             msg = (
                 "Can not recognise the table in "
@@ -2896,7 +2902,7 @@ class MainWindow(QMainWindow):
                         # Ensure the labels are within the bounds of the image.
                         # If not, fix them.
                         x, y, snapped = self.canvas.snapPointToCanvas(x, y)
-                        shape.addPoint(QPointF(x, y))
+                        shape.addPoint(QPointF(x, y+25))
                     shape.difficult = False
                     shape.idx = order_index
                     order_index += 1

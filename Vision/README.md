@@ -207,15 +207,3 @@ This software is licensed under the Apache 2.0 LICENSE. Xtreme1 is a trademark o
 <img src="/docs/images/LFAI_DATA_horizontal-color.png" width="250">
 
 Xtreme1 is now hosted in [LF AI & Data Foundation](https://medium.com/multisensory-data-training/xtreme1-the-first-open-source-labeling-annotation-and-visualization-project-is-debuting-at-the-da1d157d1512) as the 1st open source data labeling annotation and visualization project.
-
-
-If Xtreme1 is part of your development process / project / publication, please cite us ❤️ :
-```bash
-@misc{Xtreme1,
-title = {Xtreme1 - The Next GEN Platform For Multisensory Training Data},
-year = {2023},
-note = {Software available from https://github.com/xtreme1-io/xtreme1/},
-url={https://xtreme1.io/},
-author = {LF AI & Data Foundation},
-}
-```

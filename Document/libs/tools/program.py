@@ -675,12 +675,12 @@ def get_center(model, eval_dataloader, post_process_class):
 
 def preprocess(is_train=False, conf= "./configs/det/ch_PP-OCRv4_det_cml.yml", data_dir = "./train_data/icdar2015/text_localization/", lang = "en"):
     lg_idx = {
-            "ch":"ppocr/utils/chinese_cht_dict.txt",
-            "en":"ppocr/utils/dict/japan_dict.txt",
-            "french":"ppocr/utils/dict/french_dict.txt",
-            "german":"ppocr/utils/dict/german_dict.txt",
-            "korean":"ppocr/utils/dict/korean_dict.txt",
-            "japan":"ppocr/utils/dict/japan_dict.txt",
+            "ch":"./libs/ppocr/utils/dict/chinese_cht_dict.txt",
+                    "en":"./libs/ppocr/utils/en_dict.txt",
+                    "french":"./libs/ppocr/utils/dict/french_dict.txt",
+                    "german":"./libs/ppocr/utils/dict/german_dict.txt",
+                    "korean":"./libs/ppocr/utils/dict/korean_dict.txt",
+                    "japan":"./libs/ppocr/utils/dict/japan_dict.txt",
     }
             
     config = load_config(conf)
@@ -690,7 +690,8 @@ def preprocess(is_train=False, conf= "./configs/det/ch_PP-OCRv4_det_cml.yml", da
     config["Train"]["dataset"]["label_file_list"] = os.path.join(data_dir, "train.txt")
     config["Eval"]["dataset"]["data_dir"] = data_dir
     config["Eval"]["dataset"]["label_file_list"] = os.path.join(data_dir, "test.txt")
-
+    config["Global"]["save_model_dir"] = data_dir
+    config["Global"]["save_inference_dir"] = data_dir
     if is_train:
         # save_config
         save_model_dir = config["Global"]["save_model_dir"]
