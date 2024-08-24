@@ -60,6 +60,7 @@ from PyQt5.QtWidgets import (
     QDialog,
     QAbstractItemView,
     QSizePolicy,
+    QLineEdit,
 )
 
 os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
@@ -435,6 +436,12 @@ class MainWindow(QMainWindow):
             QDockWidget.DockWidgetClosable | QDockWidget.DockWidgetFloatable
         )
         self.fileDock.setFeatures(QDockWidget.NoDockWidgetFeatures)
+
+        self.panel2 = QLabel()
+        self.panel2.setText("Workspace")
+        self.panel2.setAlignment(Qt.AlignLeft)
+        self.lineedit = QLineEdit()
+        self.lineedit.setText(settings.get(WORK_SPACE, "."))
 
         #  ================== Actions ==================
         action = partial(newAction, self)
@@ -2036,7 +2043,7 @@ class MainWindow(QMainWindow):
 
     def showBoundingBoxFromPPlabel(self, filePath):
         width, height = self.image.width(), self.image.height()
-        imgidx = self.getImglabelidx(filePath)
+        imgidx = filePath
         shapes = []
         # box['ratio'] of the shapes saved in lockedShapes contains the ratio of the
         # four corner coordinates of the shapes to the height and width of the image
@@ -2155,6 +2162,8 @@ class MainWindow(QMainWindow):
             settings[SETTING_PAINT_LABEL] = self.displayLabelOption.isChecked()
             settings[SETTING_PAINT_INDEX] = self.displayIndexOption.isChecked()
             settings[SETTING_DRAW_SQUARE] = self.drawSquaresOption.isChecked()
+
+            settings[WORK_SPACE] = self.lineedit.text()
             settings.save()
             try:
                 self.saveLabelFile()
@@ -2266,10 +2275,10 @@ class MainWindow(QMainWindow):
             self.saveLabelFile()
 
         if not isDelete:
-            self.loadFilestate(dirpath)
-            self.PPlabelpath = dirpath + "/Label.txt"
+            self.loadFilestate(self.lineedit.text())
+            self.PPlabelpath = self.lineedit.text() + "/Label.txt"
             self.PPlabel = self.loadLabelFile(self.PPlabelpath)
-            self.Cachelabelpath = dirpath + "/Cache.cach"
+            self.Cachelabelpath = self.lineedit.text() + "/Cache.cach"
             self.Cachelabel = self.loadLabelFile(self.Cachelabelpath)
             if self.Cachelabel:
                 self.PPlabel = dict(self.Cachelabel, **self.PPlabel)
@@ -2279,7 +2288,7 @@ class MainWindow(QMainWindow):
         self.lastOpenDir = dirpath
         self.dirname = dirpath
 
-        self.defaultSaveDir = dirpath
+        self.defaultSaveDir = self.lineedit.text()
         self.statusBar().showMessage(
             "%s started. Annotation will be saved to %s"
             % (__appname__, self.defaultSaveDir)
@@ -2364,7 +2373,7 @@ class MainWindow(QMainWindow):
     def saveFile(self, _value=False, mode="Manual"):
         # Manual mode is used for users click "Save" manually,which will change the state of the image
         if self.filePath:
-            imgidx = self.getImglabelidx(self.filePath)
+            imgidx = self.filePath
             self._saveFile(imgidx, mode=mode)
 
     def saveLockedShapes(self):
@@ -2468,7 +2477,7 @@ class MainWindow(QMainWindow):
 
                 if self.filePath in self.fileStatedict.keys():
                     self.fileStatedict.pop(self.filePath)
-                imgidx = self.getImglabelidx(self.filePath)
+                imgidx = self.filePath
                 if imgidx in self.PPlabel.keys():
                     self.PPlabel.pop(imgidx)
                 self.openNextImg()
@@ -2673,13 +2682,13 @@ class MainWindow(QMainWindow):
 
         return bbox
 
-    def getImglabelidx(self, filePath):
-        if platform.system() == "Windows":
-            spliter = "\\"
-        else:
-            spliter = "/"
-        filepathsplit = filePath.split(spliter)[-2:]
-        return filepathsplit[0] + "/" + filepathsplit[1]
+    # def getImglabelidx(self, filePath):
+    #     if platform.system() == "Windows":
+    #         spliter = "\\"
+    #     else:
+    #         spliter = "/"
+    #     filepathsplit = filePath.split(spliter)[-2:]
+    #     return filepathsplit[0] + "/" + filepathsplit[1]
 
     def autoRecognition(self):
         assert self.mImgList is not None
@@ -3101,8 +3110,11 @@ class MainWindow(QMainWindow):
         self.comboBox.addItems(
             ["Chinese & English", "English", "French", "German", "Korean", "Japanese"]
         )
+
         vbox.addWidget(self.panel)
         vbox.addWidget(self.comboBox)
+        vbox.addWidget(self.panel2)
+        vbox.addWidget(self.lineedit)
         self.dialog = QDialog()
         self.dialog.resize(300, 100)
         self.okBtn = QPushButton(self.stringBundle.getString("ok"))
@@ -3185,7 +3197,8 @@ class MainWindow(QMainWindow):
         return labeldict
 
     def savePPlabel(self, mode="Manual"):
-        savedfile = [self.getImglabelidx(i) for i in self.fileStatedict.keys()]
+        savedfile = [i for i in self.fileStatedict.keys()]
+
         with open(self.PPlabelpath, "w", encoding="utf-8") as f:
             for key in self.PPlabel:
                 if key in savedfile and self.PPlabel[key] != []:
@@ -3215,14 +3228,14 @@ class MainWindow(QMainWindow):
             return
 
         rec_gt_dir = os.path.dirname(self.PPlabelpath) + "/rec_gt.txt"
-        crop_img_dir = os.path.dirname(self.PPlabelpath) + "/crop_img/"
+        crop_img_dir = self.dirname+ "/crop_img/"
         ques_img = []
         if not os.path.exists(crop_img_dir):
             os.mkdir(crop_img_dir)
 
         with open(rec_gt_dir, "w", encoding="utf-8") as f:
             for key in self.fileStatedict:
-                idx = self.getImglabelidx(key)
+                idx = key
                 try:
                     img = cv2.imdecode(np.fromfile(key, dtype=np.uint8), -1)
                     for i, label in enumerate(self.PPlabel[idx]):
@@ -3240,7 +3253,7 @@ class MainWindow(QMainWindow):
                         cv2.imencode(".jpg", img_crop)[1].tofile(
                             crop_img_dir + img_name
                         )
-                        f.write("crop_img/" + img_name + "\t")
+                        f.write(crop_img_dir + img_name + "\t")
                         f.write(label["transcription"] + "\n")
                 except KeyError as e:
                     pass

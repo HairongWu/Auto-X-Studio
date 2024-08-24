@@ -11,7 +11,7 @@ import datetime
 import os
 
 from libs.utils import newIcon
-from .paddleocr import genDetRecTrainVal, train_paddle, preprocess, set_seed
+from .paddleocr import train_paddle
 
 BB = QDialogButtonBox
 
@@ -34,42 +34,19 @@ class Worker(QThread):
         try:
             findex = 0
             self.listValue.emit("genDetRecTrainVal")
-            genDetRecTrainVal(self.annoPath)
-            findex += 1
-            self.progressBarValue.emit(findex)
-
-            self.listValue.emit("preprocess")
-            config, device, logger, vdl_writer = preprocess(is_train=True, conf= "./libs/configs/det/ch_PP-OCRv4/ch_PP-OCRv4_det_student.yml", data_dir=self.annoPath+"/det", lang=self.lang)
-            findex += 1
-            self.progressBarValue.emit(findex)
-            seed = config["Global"]["seed"] if "seed" in config["Global"] else 1024
-            set_seed(seed)
-            self.listValue.emit("training...")
-            train_paddle(config, device, logger, vdl_writer, seed)
 
             findex += 1
             self.progressBarValue.emit(findex)
 
-            lg_idx = {
-                    "ch":"./libs/configs/rec/PP-OCRv4/ch_PP-OCRv4_rec.yml",
-                    "en":"./libs/configs/rec/PP-OCRv4/en_PP-OCRv4_rec.yml",
-                    "french":"./libs/configs/rec/multi_language/rec_french_lite_train.yml",
-                    "german":"./libs/configs/rec/multi_language/rec_german_lite_train.yml",
-                    "korean":"./libs/configs/rec/multi_language/rec_korean_lite_train.yml",
-                    "japan":"./libs/configs/rec/multi_language/rec_japan_lite_train.yml",
-            }
+            self.listValue.emit("training detection model...")
+            train_paddle("det", self.annoPath, self.lang)
 
-            self.listValue.emit("preprocess")
-            config, device, logger, vdl_writer = preprocess(is_train=True, conf= lg_idx[self.lang], data_dir=self.annoPath + "/rec", lang=self.lang)
             findex += 1
             self.progressBarValue.emit(findex)
-            seed = config["Global"]["seed"] if "seed" in config["Global"] else 1024
-            set_seed(seed)
 
-            self.listValue.emit("training...")
-            train_paddle(config, device, logger, vdl_writer, seed)
-            findex += 1
-            self.progressBarValue.emit(findex)
+            self.listValue.emit("training recognition model...")
+            train_paddle("rec", self.annoPath, self.lang)
+
             self.listValue.emit("finished")
             self.endsignal.emit(0, "readAll")
             self.exec()
@@ -87,7 +64,7 @@ class TrainDialog(QDialog):
         self.parent = parent
         self.annos = annos
         self.lang = lang
-        self.lender = 5
+        self.lender = 3
         self.pb = QProgressBar()
         self.pb.setRange(0, self.lender)
         self.pb.setValue(0)
@@ -130,7 +107,7 @@ class TrainDialog(QDialog):
         )[
             0
         ]  # Remove microseconds
-        self.setWindowTitle("PPOCRLabel  --  " + f"Time Left: {time_left}")  # show
+        self.setWindowTitle("Auto-X Studio  --  " + f"Time Left: {time_left}")  # show
 
     def handleListWidgetSingal(self, i):
         self.listWidget.addItem(i)

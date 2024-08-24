@@ -35,6 +35,7 @@ import os
 import shutil
 import random
 import paddle.distributed as dist
+import tarfile
 
 from tools.infer import predict_system
 from ppocr.data import build_dataloader, set_signal_handlers
@@ -47,7 +48,6 @@ from ppocr.utils.save_load import load_model
 from ppocr.utils.utility import set_seed
 from ppocr.modeling.architectures import apply_to_static
 from tools.program import preprocess, train
-from tools.export_model import export_single_model
 
 def _import_file(module_name, file_path, make_importable=False):
     spec = importlib.util.spec_from_file_location(module_name, file_path)
@@ -106,63 +106,77 @@ MODEL_URLS = {
         "PP-OCRv4": {
             "det": {
                 "ch": {
-                    "url": "https://paddleocr.bj.bcebos.com/PP-OCRv4/chinese/ch_PP-OCRv4_det_infer.tar",
+                    "url": "https://paddleocr.bj.bcebos.com/PP-OCRv4/chinese/ch_PP-OCRv4_det_server_infer.tar",
+                    "train": "https://paddleocr.bj.bcebos.com/PP-OCRv4/chinese/ch_PP-OCRv4_det_server_train.tar",
+                    "conf":"./libs/configs/det/ch_PP-OCRv4/ch_PP-OCRv4_det_teacher.yml"
                 },
                 "en": {
                     "url": "https://paddleocr.bj.bcebos.com/PP-OCRv3/english/en_PP-OCRv3_det_infer.tar",
+                    "train": "https://paddleocr.bj.bcebos.com/PP-OCRv3/english/en_PP-OCRv3_det_distill_train.tar",
+                    "conf":"./libs/configs/det/ch_PP-OCRv3/ch_PP-OCRv3_det_cml.yml"
                 },
                 "ml": {
-                    "url": "https://paddleocr.bj.bcebos.com/PP-OCRv3/multilingual/Multilingual_PP-OCRv3_det_infer.tar"
+                    "url": "https://paddleocr.bj.bcebos.com/PP-OCRv3/multilingual/Multilingual_PP-OCRv3_det_infer.tar",
+                    "train": "https://paddleocr.bj.bcebos.com/PP-OCRv3/multilingual/Multilingual_PP-OCRv3_det_distill_train.tar",
+                    "conf":"./libs/configs/det/ch_PP-OCRv3/ch_PP-OCRv3_det_cml.yml"
                 },
             },
             "rec": {
                 "ch": {
                     "url": "https://paddleocr.bj.bcebos.com/PP-OCRv4/chinese/ch_PP-OCRv4_rec_infer.tar",
-                    "dict_path": "./ppocr/utils/ppocr_keys_v1.txt",
+                    "train": "https://paddleocr.bj.bcebos.com/PP-OCRv4/chinese/ch_PP-OCRv4_rec_train.tar",
+                    "dict_path": "./libs/ppocr/utils/ppocr_keys_v1.txt",
+                    "conf":"./libs/configs/rec/PP-OCRv4/ch_PP-OCRv4_rec_distill.yml"
                 },
                 "en": {
                     "url": "https://paddleocr.bj.bcebos.com/PP-OCRv4/english/en_PP-OCRv4_rec_infer.tar",
-                    "dict_path": "./ppocr/utils/en_dict.txt",
+                    "train": "https://paddleocr.bj.bcebos.com/PP-OCRv4/english/en_PP-OCRv4_rec_train.tar",
+                    "dict_path": "./libs/ppocr/utils/en_dict.txt",
+                    "conf":"./libs/configs/rec/PP-OCRv4/en_PP-OCRv4_rec.yml"
                 },
                 "korean": {
                     "url": "https://paddleocr.bj.bcebos.com/PP-OCRv4/multilingual/korean_PP-OCRv4_rec_infer.tar",
-                    "dict_path": "./ppocr/utils/dict/korean_dict.txt",
+                    "train": "https://paddleocr.bj.bcebos.com/PP-OCRv4/multilingual/korean_PP-OCRv4_rec_train.tar",
+                    "dict_path": "./libs/ppocr/utils/dict/korean_dict.txt",
+                    "conf":"./libs/configs/rec/PP-OCRv3/multi_language/korean_PP-OCRv3_rec.yml"
                 },
                 "japan": {
                     "url": "https://paddleocr.bj.bcebos.com/PP-OCRv4/multilingual/japan_PP-OCRv4_rec_infer.tar",
-                    "dict_path": "./ppocr/utils/dict/japan_dict.txt",
+                    "train": "https://paddleocr.bj.bcebos.com/PP-OCRv4/multilingual/japan_PP-OCRv4_rec_train.tar",
+                    "dict_path": "./libs/ppocr/utils/dict/japan_dict.txt",
+                    "conf":"./libs/configs/rec/PP-OCRv3/multi_language/korean_PP-OCRv3_rec.yml"
                 },
                 "chinese_cht": {
                     "url": "https://paddleocr.bj.bcebos.com/PP-OCRv3/multilingual/chinese_cht_PP-OCRv3_rec_infer.tar",
-                    "dict_path": "./ppocr/utils/dict/chinese_cht_dict.txt",
+                    "dict_path": "./libs/ppocr/utils/dict/chinese_cht_dict.txt",
                 },
                 "ta": {
                     "url": "https://paddleocr.bj.bcebos.com/PP-OCRv4/multilingual/ta_PP-OCRv4_rec_infer.tar",
-                    "dict_path": "./ppocr/utils/dict/ta_dict.txt",
+                    "dict_path": "./libs/ppocr/utils/dict/ta_dict.txt",
                 },
                 "te": {
                     "url": "https://paddleocr.bj.bcebos.com/PP-OCRv4/multilingual/te_PP-OCRv4_rec_infer.tar",
-                    "dict_path": "./ppocr/utils/dict/te_dict.txt",
+                    "dict_path": "./libs/ppocr/utils/dict/te_dict.txt",
                 },
                 "ka": {
                     "url": "https://paddleocr.bj.bcebos.com/PP-OCRv4/multilingual/ka_PP-OCRv4_rec_infer.tar",
-                    "dict_path": "./ppocr/utils/dict/ka_dict.txt",
+                    "dict_path": "./libs/ppocr/utils/dict/ka_dict.txt",
                 },
                 "latin": {
                     "url": "https://paddleocr.bj.bcebos.com/PP-OCRv3/multilingual/latin_PP-OCRv3_rec_infer.tar",
-                    "dict_path": "./ppocr/utils/dict/latin_dict.txt",
+                    "dict_path": "./libs/ppocr/utils/dict/latin_dict.txt",
                 },
                 "arabic": {
                     "url": "https://paddleocr.bj.bcebos.com/PP-OCRv4/multilingual/arabic_PP-OCRv4_rec_infer.tar",
-                    "dict_path": "./ppocr/utils/dict/arabic_dict.txt",
+                    "dict_path": "./libs/ppocr/utils/dict/arabic_dict.txt",
                 },
                 "cyrillic": {
                     "url": "https://paddleocr.bj.bcebos.com/PP-OCRv3/multilingual/cyrillic_PP-OCRv3_rec_infer.tar",
-                    "dict_path": "./ppocr/utils/dict/cyrillic_dict.txt",
+                    "dict_path": "./libs/ppocr/utils/dict/cyrillic_dict.txt",
                 },
                 "devanagari": {
                     "url": "https://paddleocr.bj.bcebos.com/PP-OCRv4/multilingual/devanagari_PP-OCRv4_rec_infer.tar",
-                    "dict_path": "./ppocr/utils/dict/devanagari_dict.txt",
+                    "dict_path": "./libs/ppocr/utils/dict/devanagari_dict.txt",
                 },
             },
             "cls": {
@@ -871,11 +885,63 @@ class PPStructure(StructureSystem):
         return res
 
 
-def train_paddle(config, device, logger, vdl_writer, seed):
+def train_paddle(model_type, annoPath, lang):
+    from tools.export_model import export_single_model
+    # download model if using paddle infer
+    params = parse_args(mMain=False)
+
+    if not params.show_log:
+        logger.setLevel(logging.INFO)
+    lang, det_lang = parse_lang(lang)
+
+    # init model dir
+    model_config = get_model_config("OCR", params.ocr_version, model_type, det_lang)
+    if model_type == "det":
+        model_dir = params.det_model_dir
+    elif model_type == "rec":
+        model_dir = params.rec_model_dir
+
+    model_dir, det_url = confirm_model_dir_url(
+        model_dir,
+        os.path.join(BASE_DIR, "whl", model_type, det_lang),
+        model_config["train"],
+    )
+    
+    # using custom model
+    tar_file_name_list = [".pdparams"]
+    if not os.path.exists(
+        os.path.join(model_dir, "best_accuracy.pdparams")
+    ):
+        assert det_url.endswith(".tar"), "Only supports tar compressed package"
+        tmp_path = os.path.join(model_dir, det_url.split("/")[-1])
+        print("download {} to {}".format(det_url, tmp_path))
+        os.makedirs(model_dir, exist_ok=True)
+        download_with_progressbar(det_url, tmp_path)
+        with tarfile.open(tmp_path, "r") as tarObj:
+            for member in tarObj.getmembers():
+                filename = None
+                for tar_file_name in tar_file_name_list:
+                    if member.name.endswith(tar_file_name):
+                        filename = "best_accuracy" + tar_file_name
+                if filename is None:
+                    continue
+                file = tarObj.extractfile(member)
+                with open(os.path.join(model_dir, filename), "wb") as f:
+                    f.write(file.read())
+        os.remove(tmp_path)
+
+    genDetRecTrainVal(annoPath)
+
+    config, device, logger, vdl_writer = preprocess(is_train=True, conf= model_config["conf"], data_dir=os.path.join(annoPath, model_type), lang = det_lang)
     # init dist environment
     if config["Global"]["distributed"]:
         dist.init_parallel_env()
 
+    seed = config["Global"]["seed"] if "seed" in config["Global"] else 1024
+    set_seed(seed)
+    config["Global"]["pretrained_model"] = os.path.join(model_dir, "best_accuracy.pdparams")
+    if model_type == "rec":
+        config["Global"]["character_dict_path"] = model_config["dict_path"]
     global_config = config["Global"]
 
     # build dataloader
@@ -1108,8 +1174,7 @@ def isCreateOrDeleteFolder(path, flag):
 
 detLabelFileName = "Label.txt"
 recLabelFileName = "rec_gt.txt"
-recImageDirName = "crop_img"
-trainValTestRatio = "6:2:2"
+trainValTestRatio = "7:2:1"
 
 def splitTrainVal(
     root,
@@ -1135,12 +1200,9 @@ def splitTrainVal(
             image_name = os.path.basename(image_relative_path)
 
             if flag == "det":
-                image_path = os.path.join(data_abs_path, image_name)
+                image_path = image_relative_path
             elif flag == "rec":
-                image_path = os.path.join(
-                    data_abs_path, recImageDirName, image_name
-                )
-
+                image_path = image_relative_path
             train_val_test_ratio = trainValTestRatio.split(":")
             train_ratio = eval(train_val_test_ratio[0]) / 10
             val_ratio = train_ratio + eval(train_val_test_ratio[1]) / 10
@@ -1204,11 +1266,8 @@ def genDetRecTrainVal(datasetRootPath = "../train_data/"):
         "det",
     )
 
-    for root, dirs, files in os.walk(datasetRootPath):
-        for dir in dirs:
-            if dir == "crop_img":
-                splitTrainVal(
-                    root,
+    splitTrainVal(
+                    datasetRootPath,
                     recAbsTrainRootPath,
                     recAbsValRootPath,
                     recAbsTestRootPath,
@@ -1217,6 +1276,3 @@ def genDetRecTrainVal(datasetRootPath = "../train_data/"):
                     recTestTxt,
                     "rec",
                 )
-            else:
-                continue
-        break

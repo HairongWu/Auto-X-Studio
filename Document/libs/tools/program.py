@@ -414,7 +414,7 @@ def train(
                         max_average_window=15625,
                     )
                     Model_Average.apply()
-                cur_metric = eval(
+                cur_metric = eval_paddle(
                     model,
                     valid_dataloader,
                     post_process_class,
@@ -674,18 +674,9 @@ def get_center(model, eval_dataloader, post_process_class):
 
 
 def preprocess(is_train=False, conf= "./configs/det/ch_PP-OCRv4_det_cml.yml", data_dir = "./train_data/icdar2015/text_localization/", lang = "en"):
-    lg_idx = {
-            "ch":"./libs/ppocr/utils/dict/chinese_cht_dict.txt",
-                    "en":"./libs/ppocr/utils/en_dict.txt",
-                    "french":"./libs/ppocr/utils/dict/french_dict.txt",
-                    "german":"./libs/ppocr/utils/dict/german_dict.txt",
-                    "korean":"./libs/ppocr/utils/dict/korean_dict.txt",
-                    "japan":"./libs/ppocr/utils/dict/japan_dict.txt",
-    }
             
     config = load_config(conf)
 
-    config["Global"]["character_dict_path"] = lg_idx[lang]
     config["Train"]["dataset"]["data_dir"] = data_dir
     config["Train"]["dataset"]["label_file_list"] = os.path.join(data_dir, "train.txt")
     config["Eval"]["dataset"]["data_dir"] = data_dir

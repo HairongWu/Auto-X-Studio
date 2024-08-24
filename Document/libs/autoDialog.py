@@ -139,7 +139,7 @@ class AutoDialog(QDialog):
         )[
             0
         ]  # Remove microseconds
-        self.setWindowTitle("PPOCRLabel  --  " + f"Time Left: {time_left}")  # show
+        self.setWindowTitle("Auto-X Studio --  " + f"Time Left: {time_left}")  # show
 
     def handleListWidgetSingal(self, i):
         self.listWidget.addItem(i)
