@@ -86,6 +86,8 @@ from libs.keyDialog import KeyDialog
 from libs.trainDialog import TrainDialog
 
 from libs.paddleocr import PPStructure, to_excel
+from libs.paddleocr import PaddleOCR
+
 __appname__ = "Auto-X Studio"
 
 LABEL_COLORMAP = label_colormap()
@@ -2744,6 +2746,7 @@ class MainWindow(QMainWindow):
                     )
                     QMessageBox.information(self, "Information", msg)
                     return
+                self.ocr = PaddleOCR(use_angle_cls=True, lang=self.choose_lang)
                 result = self.ocr.ocr(img_crop, cls=True, det=False)[0]
                 if result[0][0] != "":
                     if shape.line_color == DEFAULT_LOCK_COLOR:
@@ -2815,6 +2818,7 @@ class MainWindow(QMainWindow):
                 )
                 QMessageBox.information(self, "Information", msg)
                 return
+            self.ocr = PaddleOCR(use_angle_cls=True, lang=self.choose_lang)
             result = self.ocr.ocr(img_crop, cls=True, det=False)[0]
             if result[0][0] != "":
                 result.insert(0, box)
@@ -2996,6 +3000,7 @@ class MainWindow(QMainWindow):
             # merge the text result in the cell
             texts = ""
             probs = 0.0  # the probability of the cell is avgerage prob of every text box in the cell
+            self.ocr = PaddleOCR(use_angle_cls=True, lang=self.choose_lang)
             bboxes = self.ocr.ocr(img_crop, det=True, rec=False, cls=False)[0]
             if len(bboxes) > 0:
                 bboxes.reverse()  # top row text at first

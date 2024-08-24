@@ -1174,7 +1174,7 @@ def isCreateOrDeleteFolder(path, flag):
 
 detLabelFileName = "Label.txt"
 recLabelFileName = "rec_gt.txt"
-trainValTestRatio = "7:2:1"
+trainValTestRatio = "6:2:2"
 
 def splitTrainVal(
     root,
