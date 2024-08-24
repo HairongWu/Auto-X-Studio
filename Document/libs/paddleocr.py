@@ -125,58 +125,58 @@ MODEL_URLS = {
                 "ch": {
                     "url": "https://paddleocr.bj.bcebos.com/PP-OCRv4/chinese/ch_PP-OCRv4_rec_infer.tar",
                     "train": "https://paddleocr.bj.bcebos.com/PP-OCRv4/chinese/ch_PP-OCRv4_rec_train.tar",
-                    "dict_path": "./libs/ppocr/utils/ppocr_keys_v1.txt",
+                    "dict_path": "./ppocr/utils/ppocr_keys_v1.txt",
                     "conf":"./libs/configs/rec/PP-OCRv4/ch_PP-OCRv4_rec_distill.yml"
                 },
                 "en": {
                     "url": "https://paddleocr.bj.bcebos.com/PP-OCRv4/english/en_PP-OCRv4_rec_infer.tar",
                     "train": "https://paddleocr.bj.bcebos.com/PP-OCRv4/english/en_PP-OCRv4_rec_train.tar",
-                    "dict_path": "./libs/ppocr/utils/en_dict.txt",
+                    "dict_path": "./ppocr/utils/en_dict.txt",
                     "conf":"./libs/configs/rec/PP-OCRv4/en_PP-OCRv4_rec.yml"
                 },
                 "korean": {
                     "url": "https://paddleocr.bj.bcebos.com/PP-OCRv4/multilingual/korean_PP-OCRv4_rec_infer.tar",
                     "train": "https://paddleocr.bj.bcebos.com/PP-OCRv4/multilingual/korean_PP-OCRv4_rec_train.tar",
-                    "dict_path": "./libs/ppocr/utils/dict/korean_dict.txt",
+                    "dict_path": "./ppocr/utils/dict/korean_dict.txt",
                     "conf":"./libs/configs/rec/PP-OCRv3/multi_language/korean_PP-OCRv3_rec.yml"
                 },
                 "japan": {
                     "url": "https://paddleocr.bj.bcebos.com/PP-OCRv4/multilingual/japan_PP-OCRv4_rec_infer.tar",
                     "train": "https://paddleocr.bj.bcebos.com/PP-OCRv4/multilingual/japan_PP-OCRv4_rec_train.tar",
-                    "dict_path": "./libs/ppocr/utils/dict/japan_dict.txt",
+                    "dict_path": "./ppocr/utils/dict/japan_dict.txt",
                     "conf":"./libs/configs/rec/PP-OCRv3/multi_language/korean_PP-OCRv3_rec.yml"
                 },
                 "chinese_cht": {
                     "url": "https://paddleocr.bj.bcebos.com/PP-OCRv3/multilingual/chinese_cht_PP-OCRv3_rec_infer.tar",
-                    "dict_path": "./libs/ppocr/utils/dict/chinese_cht_dict.txt",
+                    "dict_path": "./ppocr/utils/dict/chinese_cht_dict.txt",
                 },
                 "ta": {
                     "url": "https://paddleocr.bj.bcebos.com/PP-OCRv4/multilingual/ta_PP-OCRv4_rec_infer.tar",
-                    "dict_path": "./libs/ppocr/utils/dict/ta_dict.txt",
+                    "dict_path": "./ppocr/utils/dict/ta_dict.txt",
                 },
                 "te": {
                     "url": "https://paddleocr.bj.bcebos.com/PP-OCRv4/multilingual/te_PP-OCRv4_rec_infer.tar",
-                    "dict_path": "./libs/ppocr/utils/dict/te_dict.txt",
+                    "dict_path": "./ppocr/utils/dict/te_dict.txt",
                 },
                 "ka": {
                     "url": "https://paddleocr.bj.bcebos.com/PP-OCRv4/multilingual/ka_PP-OCRv4_rec_infer.tar",
-                    "dict_path": "./libs/ppocr/utils/dict/ka_dict.txt",
+                    "dict_path": "./ppocr/utils/dict/ka_dict.txt",
                 },
                 "latin": {
                     "url": "https://paddleocr.bj.bcebos.com/PP-OCRv3/multilingual/latin_PP-OCRv3_rec_infer.tar",
-                    "dict_path": "./libs/ppocr/utils/dict/latin_dict.txt",
+                    "dict_path": "./ppocr/utils/dict/latin_dict.txt",
                 },
                 "arabic": {
                     "url": "https://paddleocr.bj.bcebos.com/PP-OCRv4/multilingual/arabic_PP-OCRv4_rec_infer.tar",
-                    "dict_path": "./libs/ppocr/utils/dict/arabic_dict.txt",
+                    "dict_path": "./ppocr/utils/dict/arabic_dict.txt",
                 },
                 "cyrillic": {
                     "url": "https://paddleocr.bj.bcebos.com/PP-OCRv3/multilingual/cyrillic_PP-OCRv3_rec_infer.tar",
-                    "dict_path": "./libs/ppocr/utils/dict/cyrillic_dict.txt",
+                    "dict_path": "./ppocr/utils/dict/cyrillic_dict.txt",
                 },
                 "devanagari": {
                     "url": "https://paddleocr.bj.bcebos.com/PP-OCRv4/multilingual/devanagari_PP-OCRv4_rec_infer.tar",
-                    "dict_path": "./libs/ppocr/utils/dict/devanagari_dict.txt",
+                    "dict_path": "./ppocr/utils/dict/devanagari_dict.txt",
                 },
             },
             "cls": {
@@ -941,7 +941,7 @@ def train_paddle(model_type, annoPath, lang):
     set_seed(seed)
     config["Global"]["pretrained_model"] = os.path.join(model_dir, "best_accuracy.pdparams")
     if model_type == "rec":
-        config["Global"]["character_dict_path"] = model_config["dict_path"]
+        config["Global"]["character_dict_path"] = os.path.join("./libs", model_config["dict_path"])
     global_config = config["Global"]
 
     # build dataloader

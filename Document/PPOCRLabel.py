@@ -3159,9 +3159,7 @@ class MainWindow(QMainWindow):
     def loadFilestate(self, saveDir):
         self.fileStatepath = saveDir + "/fileState.txt"
         self.fileStatedict = {}
-        if not os.path.exists(self.fileStatepath):
-            f = open(self.fileStatepath, "w", encoding="utf-8")
-        else:
+        if os.path.exists(self.fileStatepath):
             with open(self.fileStatepath, "r", encoding="utf-8") as f:
                 states = f.readlines()
                 for each in states:
