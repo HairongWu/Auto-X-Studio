@@ -11,3 +11,4 @@ Auto-X Studio provides full workflows to build or finetune your own AI solution 
 - [PPOCRLabel](https://github.com/PFCCLab/PPOCRLabel)
 - [Xtreme1](https://github.com/xtreme1-io/xtreme1)
 - [The Medical Imaging Interaction Toolkit (MITK)](https://github.com/MITK/MITK)
+- [AnyLabeling](https://github.com/vietanhdev/anylabeling)

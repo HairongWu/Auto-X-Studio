@@ -963,7 +963,7 @@ class MainWindow(QMainWindow):
             file=self.menu("&" + getStr("mfile")),
             edit=self.menu("&" + getStr("medit")),
             view=self.menu("&" + getStr("mview")),
-            autolabel=self.menu("&PaddleOCR"),
+            autolabel=self.menu("&Auto-X"),
             help=self.menu("&" + getStr("mhelp")),
             recentFiles=QMenu("Open &Recent"),
             labelList=labelMenu,
@@ -3231,7 +3231,7 @@ class MainWindow(QMainWindow):
             return
 
         rec_gt_dir = os.path.dirname(self.PPlabelpath) + "/rec_gt.txt"
-        crop_img_dir = self.dirname+ "/crop_img/"
+        crop_img_dir = os.path.dirname(self.PPlabelpath)+ "/crop_img/"
         ques_img = []
         if not os.path.exists(crop_img_dir):
             os.mkdir(crop_img_dir)
