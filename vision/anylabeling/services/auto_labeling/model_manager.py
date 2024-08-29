@@ -390,11 +390,11 @@ class ModelManager(QObject):
 
             self.model_configs[model_id].update(model_config)
 
-        if model_config["type"] == "yolov5":
-            from .yolov5 import YOLOv5
+        elif model_config["type"] == "YOLOv10-X":
+            from .yolov10 import YOLOv10
 
             try:
-                model_config["model"] = YOLOv5(
+                model_config["model"] = YOLOv10(
                     model_config, on_message=self.new_model_status.emit
                 )
                 self.auto_segmentation_model_unselected.emit()
@@ -412,53 +412,6 @@ class ModelManager(QObject):
                     )
                 )
                 return
-        elif model_config["type"] == "yolov8":
-            from .yolov8 import YOLOv8
-
-            try:
-                model_config["model"] = YOLOv8(
-                    model_config, on_message=self.new_model_status.emit
-                )
-                self.auto_segmentation_model_unselected.emit()
-            except Exception as e:  # noqa
-                self.new_model_status.emit(
-                    self.tr(
-                        "Error in loading model: {error_message}".format(
-                            error_message=str(e)
-                        )
-                    )
-                )
-                print(
-                    "Error in loading model: {error_message}".format(
-                        error_message=str(e)
-                    )
-                )
-                return
-        elif model_config["type"] == "segment_anything":
-            from .segment_anything import SegmentAnything
-
-            try:
-                model_config["model"] = SegmentAnything(
-                    model_config, on_message=self.new_model_status.emit
-                )
-                self.auto_segmentation_model_selected.emit()
-            except Exception as e:  # noqa
-                print(
-                    "Error in loading model: {error_message}".format(
-                        error_message=str(e)
-                    )
-                )
-                self.new_model_status.emit(
-                    self.tr(
-                        "Error in loading model: {error_message}".format(
-                            error_message=str(e)
-                        )
-                    )
-                )
-                return
-
-            # Request next files for prediction
-            self.request_next_files_requested.emit()
         else:
             raise Exception(f"Unknown model type: {model_config['type']}")
 

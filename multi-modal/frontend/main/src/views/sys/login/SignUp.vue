@@ -45,12 +45,6 @@
           </FormItem>
         </div>
 
-        <div class="mt-7">
-          <FormItem name="subscribe" label="" class="enter-x">
-            <Checkbox v-model:checked="subscribe">Subscribe newsletter from us</Checkbox>
-          </FormItem>
-        </div>
-
         <FormItem class="box enter-x">
           <Button
             :size="ButtonSize.LG"

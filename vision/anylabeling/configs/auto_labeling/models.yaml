@@ -1,26 +1,3 @@
-- name: "sam2_hiera_tiny_20240803"
-  display_name: Segment Anything 2 (Hiera-Tiny)
-  download_url: https://huggingface.co/vietanhdev/segment-anything-2-onnx-models/resolve/main/sam2_hiera_tiny.zip
-- name: "sam2_hiera_small_20240803"
-  display_name: Segment Anything 2 (Hiera-Small)
-  download_url: https://huggingface.co/vietanhdev/segment-anything-2-onnx-models/resolve/main/sam2_hiera_small.zip
-- name: "sam2_hiera_base_plus_20240803"
-  display_name: Segment Anything 2 (Hiera-Base+)
-  download_url: https://huggingface.co/vietanhdev/segment-anything-2-onnx-models/resolve/main/sam2_hiera_base_plus.zip
-- name: "sam2_hiera_large_20240803"
-  display_name: Segment Anything 2 (Hiera-Large)
-  download_url: https://huggingface.co/vietanhdev/segment-anything-2-onnx-models/resolve/main/sam2_hiera_large.zip
-  display_name: YOLOv8n
-  download_url: https://github.com/vietanhdev/anylabeling-assets/releases/download/v0.4.0/yolov8n-r20230415.zip
-
 - name: "YOLOv10-X"
   display_name: YOLOv10-X
-  download_url: https://huggingface.co/jameslahm/yolov10x
-
-- name: "MedSAM-2"
-  display_name: MedSAM-2
-  download_url: https://huggingface.co/jiayuanz3/MedSAM2_pretrain/tree/main
-
-- name: "AnomalGPT"
-  display_name: AnomalGPT
-  download_url: https://huggingface.co/jiayuanz3/MedSAM2_pretrain/tree/main
+  download_url: https://github.com/THU-MIG/yolov10/releases/download/v1.1/yolov10x.pt

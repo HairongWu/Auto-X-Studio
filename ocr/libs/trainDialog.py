@@ -64,7 +64,7 @@ class TrainDialog(QDialog):
         self.parent = parent
         self.annos = annos
         self.lang = lang
-        self.lender = 3
+        self.lender = 2
         self.pb = QProgressBar()
         self.pb.setRange(0, self.lender)
         self.pb.setValue(0)
