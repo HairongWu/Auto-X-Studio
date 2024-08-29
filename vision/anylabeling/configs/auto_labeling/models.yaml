@@ -1,3 +1,7 @@
 - name: "YOLOv10-X"
-  display_name: YOLOv10-X
+  display_name: YOLOv10-X (Detection)
   download_url: https://github.com/THU-MIG/yolov10/releases/download/v1.1/yolov10x.pt
+
+- name: "YOLOv8-X"
+  display_name: YOLOv8-X (Pose)
+  download_url: https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8x-pose.pt

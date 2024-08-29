@@ -390,11 +390,33 @@ class ModelManager(QObject):
 
             self.model_configs[model_id].update(model_config)
 
-        elif model_config["type"] == "YOLOv10-X":
-            from .yolov10 import YOLOv10
+        elif model_config["type"] == "detection":
+            from .ultralytics import Detection
 
             try:
-                model_config["model"] = YOLOv10(
+                model_config["model"] = Detection(
+                    model_config, on_message=self.new_model_status.emit
+                )
+                self.auto_segmentation_model_unselected.emit()
+            except Exception as e:  # noqa
+                self.new_model_status.emit(
+                    self.tr(
+                        "Error in loading model: {error_message}".format(
+                            error_message=str(e)
+                        )
+                    )
+                )
+                print(
+                    "Error in loading model: {error_message}".format(
+                        error_message=str(e)
+                    )
+                )
+                return
+        elif model_config["type"] == "keypoint":
+            from .ultralytics import Keypoint
+
+            try:
+                model_config["model"] = Keypoint(
                     model_config, on_message=self.new_model_status.emit
                 )
                 self.auto_segmentation_model_unselected.emit()
