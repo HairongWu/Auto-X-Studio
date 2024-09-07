@@ -8,7 +8,7 @@
       </div>
 
       <div class="info">
-        <span class="link cursor-pointer" @click="handleGoPortal">Auto-X </span> Studio Community
+        Auto-X Studio Community
         Edition is an open-source platform optimizing your data labeling and accelerating AI and
         machine learning with MLOps
       </div>

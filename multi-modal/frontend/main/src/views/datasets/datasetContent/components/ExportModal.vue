@@ -45,14 +45,7 @@
             </Select.Option>
           </Select>
         </div>
-        <div class="flex items-center gap-8px">
-          <Icon icon="eva:info-fill" size="20" color="#57CCEF" />
-          <span style="color: #666"
-            >Click
-            <a href="https://docs.xtreme1.io/xtreme1-docs/export-data" target="_blank">here</a> to
-            check out our data format explanation</span
-          >
-        </div>
+        
       </div>
     </BasicModal>
   </div>

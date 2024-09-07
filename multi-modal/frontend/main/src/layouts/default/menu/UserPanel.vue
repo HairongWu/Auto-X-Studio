@@ -1,10 +1,5 @@
 <template>
   <div :class="`${prefixCls}`">
-    <div class="docs-wrapper">
-      <img class="cursor-pointer" v-if="!type" :src="docs" @click="handleGoDocs" />
-      <img class="cursor-pointer" v-else :src="docsMini" @click="handleGoDocs" />
-    </div>
-    <Divider />
     <Popover placement="rightBottom">
       <template #content>
         <p
@@ -108,9 +103,6 @@
     go(route);
   };
 
-  const handleGoDocs = () => {
-    window.open('https://docs.xtreme1.io/xtreme1-docs/');
-  };
 </script>
 <style lang="less" scoped>
   @prefix-cls: ~'@{namespace}-user-panel';

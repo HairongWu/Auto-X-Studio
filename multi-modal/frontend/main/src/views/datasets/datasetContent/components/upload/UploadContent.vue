@@ -38,20 +38,6 @@
     </div>
 
     <div class="upload__content--dragger">
-      <div class="dragger-tips">
-        <Icon class="icon" icon="eva:info-fill" size="24" />
-        <div class="text">
-          <span>Get our </span>
-          <a
-            class="highlight"
-            href="https://docs.xtreme1.io/xtreme1-docs/product-guides/upload-dataset"
-            target="_blank"
-          >
-            open data or check documentations
-          </a>
-          <span> for data formats and upload guides.</span>
-        </div>
-      </div>
       <UploadDragger :multiple="true" :showUploadList="false" :beforeUpload="beforeUpload">
         <SvgIcon size="60" name="upload" />
         <div class="dragger-placeholder">

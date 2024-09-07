@@ -28,10 +28,6 @@
           <img :src="userImg" alt="" />
           <div class="item-name">{{ t('routes.profile.profile') }}</div>
         </div>
-        <div class="card-item" @click="handleGoDocs">
-          <img :src="documentImg" alt="" />
-          <div class="item-name">Docs</div>
-        </div>
       </div>
     </div>
   </div>
@@ -56,9 +52,6 @@
     go(route);
   };
 
-  const handleGoDocs = () => {
-    window.open('https://docs.xtreme1.io/');
-  };
 </script>
 <style lang="less" scoped>
   @import './index.less';
