@@ -171,7 +171,7 @@ class Gauge(Model):
             score = score[nms_indices]
             cls = cls[nms_indices]
 
-            classes.append(int(cls))
+            classes.append(cls)
             batch_faces.append(bbox)
         return batch_faces, classes
 
@@ -217,24 +217,24 @@ class Gauge(Model):
         images, meta_data = self.preprocess_det(pre_images)
         predictions = self.predict(self.det_model, images)
         batch_faces, classes = self.postprocess_det(predictions, meta_data)
-        
+
         shapes = []
 
         for img, faces, cls in zip(pre_images, batch_faces, classes):
 
-            for bbox in faces:
+            for bbox, cl in zip(faces, cls):
                 
-                shape = Shape(label=self.classes[cls], shape_type="rectangle", flags={})
+                shape = Shape(label=self.classes[int(cl)], shape_type="rectangle", flags={})
                 shape.add_point(QtCore.QPointF(bbox[0], bbox[1]))
                 shape.add_point(QtCore.QPointF(bbox[2], bbox[3]))
                 shapes.append(shape)
 
                 rec_model = None
-                if self.classes[cls] == 'one pointer gauge':
+                if self.classes[int(cl)] == 'one pointer gauge':
                     rec_model = self.opg_model
-                if self.classes[cls] == 'two pointer gauge':
+                elif self.classes[int(cl)] == 'two pointer gauge':
                     rec_model = self.tpg_model
-                if self.classes[cls] == 'high flow indicator':
+                elif self.classes[int(cl)] == 'high flow indicator':
                     rec_model = self.hfi_model
 
                 keypoints = self.process_rec(img[int(bbox[1]):int(bbox[3]), int(bbox[0]):int(bbox[2]),:], rec_model)
