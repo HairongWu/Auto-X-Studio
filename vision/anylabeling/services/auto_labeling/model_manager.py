@@ -390,11 +390,11 @@ class ModelManager(QObject):
 
             self.model_configs[model_id].update(model_config)
 
-        elif model_config["type"] == "keypoint":
-            from .ultralytics import Keypoint
+        elif model_config["type"] == "gauge":
+            from .auto_x import Gauge
 
             try:
-                model_config["model"] = Keypoint(
+                model_config["model"] = Gauge(
                     model_config, on_message=self.new_model_status.emit
                 )
                 self.auto_segmentation_model_unselected.emit()
