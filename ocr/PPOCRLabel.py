@@ -2184,12 +2184,9 @@ class MainWindow(QMainWindow):
             for fmt in QImageReader.supportedImageFormats()
         ]
         images = []
-
-        for file in glob.glob(os.path.join(folderPath,"/**"), recursive=True):
+        for file in glob.glob(folderPath+"/**/*.*", recursive=True):
             if file.lower().endswith(tuple(extensions)):
-                relativePath = os.path.join(folderPath, file)
-                path = ustr(os.path.abspath(relativePath))
-                images.append(path)
+                images.append(file)
         natural_sort(images, key=lambda x: x.lower())
         return images
 
