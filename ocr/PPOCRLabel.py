@@ -22,6 +22,7 @@ import platform
 import subprocess
 import sys
 import traceback
+import glob
 
 import xlrd
 from functools import partial
@@ -2184,7 +2185,7 @@ class MainWindow(QMainWindow):
         ]
         images = []
 
-        for file in os.listdir(folderPath):
+        for file in glob.glob(os.path.join(folderPath,"/**"), recursive=True):
             if file.lower().endswith(tuple(extensions)):
                 relativePath = os.path.join(folderPath, file)
                 path = ustr(os.path.abspath(relativePath))

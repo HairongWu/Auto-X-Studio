@@ -230,11 +230,11 @@ class Gauge(Model):
                 shapes.append(shape)
 
                 rec_model = None
-                if self.classes[int(cl)] == 'one pointer gauge':
+                if self.classes[int(cl)] == 'pointer analogue gauge':
                     rec_model = self.opg_model
-                elif self.classes[int(cl)] == 'two pointer gauge':
-                    rec_model = self.tpg_model
-                elif self.classes[int(cl)] == 'high flow indicator':
+                # elif self.classes[int(cl)] == 'two pointer gauge':
+                #     rec_model = self.tpg_model
+                elif self.classes[int(cl)] == 'dial meter':
                     rec_model = self.hfi_model
 
                 keypoints = self.process_rec(img[int(bbox[1]):int(bbox[3]), int(bbox[0]):int(bbox[2]),:], rec_model)
