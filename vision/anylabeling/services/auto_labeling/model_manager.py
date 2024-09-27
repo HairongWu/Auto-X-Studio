@@ -412,6 +412,31 @@ class ModelManager(QObject):
                     )
                 )
                 return
+        elif model_config["type"] == "segment_anything":
+            from .segment_anything import SegmentAnything
+
+            try:
+                model_config["model"] = SegmentAnything(
+                    model_config, on_message=self.new_model_status.emit
+                )
+                self.auto_segmentation_model_selected.emit()
+            except Exception as e:  # noqa
+                print(
+                    "Error in loading model: {error_message}".format(
+                        error_message=str(e)
+                    )
+                )
+                self.new_model_status.emit(
+                    self.tr(
+                        "Error in loading model: {error_message}".format(
+                            error_message=str(e)
+                        )
+                    )
+                )
+                return
+
+            # Request next files for prediction
+            self.request_next_files_requested.emit()
         else:
             raise Exception(f"Unknown model type: {model_config['type']}")
 
